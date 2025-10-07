@@ -1,0 +1,55 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9443:9443"
+    networks:
+      - lab_net
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - lab_net
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes: []   # leer = kein Mount, aber gültige Syntax
+    networks:
+      - lab_net
+
+  pihole:
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+    volumes:
+      - pihole_etc:/etc/pihole
+      - pihole_dnsmasq:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - lab_net
+
+networks:
+  lab_net:
+    driver: bridge
+
+volumes:
+  portainer_data:
+  pihole_etc:
+  pihole_dnsmasq:
